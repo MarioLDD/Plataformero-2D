@@ -5,11 +5,13 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     private Rigidbody2D playerRb;
+    
     public float speed;
     public float speedMax;
     private bool grounded;
     public float jumpForce;
-    private bool air;
+    public ParticleSystem stela;
+    private bool falls;
     private float moveH;
 
 
@@ -18,7 +20,7 @@ public class PlayerController : MonoBehaviour
     {
         playerRb = GetComponent<Rigidbody2D>();
         grounded = true;
-        air = false;
+        falls = false;
     }
 
     // Update is called once per frame
@@ -30,19 +32,15 @@ public class PlayerController : MonoBehaviour
             playerRb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
             grounded = false;
         }
-
-        moveH = -Input.GetAxis("Horizontal");
-        if (air)
-        {
-          //  transform.Translate(Vector2.left * moveH * speed * Time.deltaTime);
-
-        }
+        
+       
+        
     }
 
     private void FixedUpdate()
     {
-
-        playerRb.AddTorque(moveH * speed * Time.fixedDeltaTime, ForceMode2D.Impulse);
+        moveH = Input.GetAxis("Horizontal");
+        playerRb.AddForce(Vector2.right * moveH * speed * Time.fixedDeltaTime, ForceMode2D.Impulse);
        LimitMaxSpeed();
        
 
@@ -51,12 +49,14 @@ public class PlayerController : MonoBehaviour
     {
         collision.gameObject.CompareTag("Ground");
         grounded=true;
+        //stela.Play();
     }
-
     private void OnCollisionExit2D(Collision2D collision)
     {
-        air= true;
+        falls = true;
+      //  stela.Stop();
     }
+
     void LimitMaxSpeed()
     {
         if(playerRb.velocity.magnitude > speedMax)
