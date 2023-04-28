@@ -1,24 +1,40 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
     private Rigidbody2D playerRb;
-    public float speed;
-    public float speedMax;
+
+    [SerializeField] private float speed;
+    [SerializeField] private float speedMax;
     private bool grounded;
-    public float jumpForce;
-    private bool air;
+    [SerializeField] private float jumpForce;
+    [SerializeField] private ParticleSystem stela;
+     private int coin;
+    [SerializeField] private int coinMultl;
+    public TMP_Text coinText;
+    // private bool falls;
     private float moveH;
 
+    // [SerializeField] private int maxRebound = 5;
+    //[SerializeField] private float amortiguacion = 0.5f;
+    // [SerializeField] private float velocityMin = 0.1f;
+    // [SerializeField] private int numRebounds;
+    // private Vector2 velInitial;
 
     // Start is called before the first frame update
     void Start()
     {
         playerRb = GetComponent<Rigidbody2D>();
+        coin = 0;
+        coinText.text = "Coins: " + coin.ToString();
         grounded = true;
-        air = false;
+        // falls = false;
+        // numRebounds = 0;
     }
 
     // Update is called once per frame
@@ -31,37 +47,62 @@ public class PlayerController : MonoBehaviour
             grounded = false;
         }
 
-        moveH = -Input.GetAxis("Horizontal");
-        if (air)
-        {
-          //  transform.Translate(Vector2.left * moveH * speed * Time.deltaTime);
 
-        }
+
     }
 
     private void FixedUpdate()
     {
-
-        playerRb.AddTorque(moveH * speed * Time.fixedDeltaTime, ForceMode2D.Impulse);
-       LimitMaxSpeed();
-       
+        moveH = Input.GetAxis("Horizontal");
+        playerRb.AddForce(Vector2.right * moveH * speed * Time.fixedDeltaTime, ForceMode2D.Impulse);
+        LimitMaxSpeed();
+        /*
+        if (playerRb.velocity.magnitude < velocityMin)
+        {
+            playerRb.velocity = Vector2.zero;
+        }
+        */
 
     }
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        collision.gameObject.CompareTag("Ground");
-        grounded=true;
+
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            grounded = true;
+            /*numRebounds++;
+            if (numRebounds >= maxRebound)
+            {
+                playerRb.velocity = Vector2.zero;
+            }
+            */
+        }
+
+
+
+        //stela.Play();
+    }
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Coin"))
+        {
+            coin += coinMultl;
+            Destroy(collision.gameObject);
+            coinText.text = "Coins: " + coin.ToString();
+        }
+        if (collision.gameObject.CompareTag("Finish"))
+        {
+            Debug.Log("Finish");
+            SceneManager.LoadScene("Victoria");
+        }
+
     }
 
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        air= true;
-    }
     void LimitMaxSpeed()
     {
-        if(playerRb.velocity.magnitude > speedMax)
+        if (playerRb.velocity.x > speedMax)
         {
-            playerRb.velocity = playerRb.velocity.normalized * speedMax;
+            playerRb.velocity = new Vector2(speedMax, playerRb.velocity.y);
         }
     }
 }
